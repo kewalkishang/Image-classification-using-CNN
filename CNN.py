@@ -18,6 +18,7 @@ from keras.layers import Dropout
 
 from keras.preprocessing import image
 
+from keras.preprocessing.image import ImageDataGenerator
 #initaializing the NN
 classifier=Sequential()
 
@@ -32,9 +33,11 @@ classifier.add(Convolution2D(32,3,3,activation='relu'))
 classifier.add(MaxPooling2D(pool_size=(2,2)))
 
 
-classifier.add(Convolution2D(64,3,3,activation='relu'))
+classifier.add(Convolution2D(32,3,3,activation='relu'))
 classifier.add(MaxPooling2D(pool_size=(2,2)))
 
+classifier.add(Convolution2D(32,3,3,activation='relu'))
+classifier.add(MaxPooling2D(pool_size=(2,2)))
 #step-3 FLATTEN
 classifier.add(Flatten())
 
@@ -45,25 +48,25 @@ classifier.add(Dropout(0.5))
 classifier.add(Dense(output_dim=1,activation='sigmoid'))
 classifier.compile(optimizer='adam',loss='binary_crossentropy',metrics=['accuracy'])
 
-#fitting the cnn to the images
+#augmenting the images fir better results
 train_datagen = ImageDataGenerator(
         rescale=1./255,
         shear_range=0.2,
         zoom_range=0.2,
         horizontal_flip=True)
 
-test_datagen = ImageDataGenerator(rescale=1./255)
+
 
 training_set = train_datagen.flow_from_directory(
         r'F:\kaggle\dogcat\sorted\train',
-        target_size=(64, 64),
+        target_size=(128, 128),
         batch_size=32,
-        class_mode='categorical')
-
+        class_mode='binary')
+#fitting the cnn to the images
 classifier.fit_generator(
         training_set,
-        steps_per_epoch=800,
-        epochs=5)
+        steps_per_epoch=1000,
+        epochs=6)
 #it gave an accuracy of nearly 83% at the end
 
 #saving the model so that we can use it again 
@@ -73,7 +76,7 @@ classifier.save_weights('F:\kaggle\dogcat\model_weights.h5')
 imglist=[]
 count=0;
 
-#reading in all test images 
+#reading in all test images
 testpath=r'F:\kaggle\dogcat\test'
 for img in glob.glob(os.path.join(testpath,'*')):
        img = image.load_img(img, target_size=(128, 128))
